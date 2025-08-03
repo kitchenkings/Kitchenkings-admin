@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Dashboard</title></head>
+<body style="font-family:Arial; padding:20px;">
+<h2>Live Orders</h2>
+<div id="orders">Loading...</div>
+<script>
+async function fetchOrders(){
+  const res=await fetch('/api/orders');
+  const data=await res.json();
+  const c=document.getElementById('orders');
+  c.innerHTML='';
+  data.forEach(o=>{
+    const div=document.createElement('div');
+    div.style.border='1px solid #ccc';div.style.margin='8px';div.style.padding='8px';
+    div.innerHTML = `<strong>ID:</strong> ${o._id}<br>
+    <strong>Status:</strong> ${o.status}<br>
+    <strong>Total:</strong> ₹${o.total.toFixed(2)}<br>
+    <button onclick="update('${o._id}','Confirmed')">Confirm</button>
+    <button onclick="update('${o._1d}','Delivered')">Deliver</button>
+    <button onclick="del('${o._id}')">Delete</button>`;
+    c.appendChild(div);
+  });
+}
+async function update(id,status){
+  await fetch('/api/orders/status/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  fetchOrders();
+}
+async function del(id){
+  await fetch('/api/orders/'+id,{method:'DELETE'});
+  fetchOrders();
+}
+setInterval(fetchOrders,5000);
+fetchOrders();
+</script>
+</body></html>
