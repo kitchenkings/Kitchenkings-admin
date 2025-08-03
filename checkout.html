@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Kitchen Kings Checkout</title>
+</head>
+<body style="font-family:sans-serif;padding:20px;">
+  <h2>🧾 Your Order</h2>
+  <div id="order-list"></div>
+  <p id="total-line"></p>
+  <button onclick="placeOrder()">Place Order via WhatsApp</button>
+
+  <script>
+    const cart = JSON.parse(localStorage.getItem("kk_cart") || "[]");
+    let subtotal = 0;
+    const orderList = document.getElementById("order-list");
+
+    if (!cart.length) {
+      orderList.innerHTML = "Cart is empty.";
+    } else {
+      cart.forEach(item => {
+        subtotal += item.price * item.qty;
+        orderList.innerHTML += `<div>${item.name} x${item.qty} = ₹${item.price * item.qty}</div>`;
+      });
+    }
+
+    document.getElementById("total-line").innerText = "Total: ₹" + subtotal;
+
+    async function placeOrder() {
+      if (!cart.length) return alert("Cart empty");
+
+      // Save to DB
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(i => ({ name: i.name, qty: i.qty, total: i.qty * i.price })),
+          total: subtotal
+        })
+      });
+
+      // WhatsApp link
+      let msg = "*Kitchen Kings Order Summary*\n";
+      cart.forEach(i => {
+        msg += `• ${i.name} x(${i.qty}) = ₹${i.qty * i.price}\n`;
+      });
+      msg += `\n*Total Payable*: ₹${subtotal}\nPayment: UPI (8280270935@ptsbi)\nPlease send screenshot.\n📱 WhatsApp: 7898944429`;
+      const wa = "https://wa.me/917898944429?text=" + encodeURIComponent(msg);
+
+      localStorage.removeItem("kk_cart");
+      window.location.href = wa;
+    }
+  </script>
+</body>
+</html>
